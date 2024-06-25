@@ -20,7 +20,7 @@ func main() {
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var user userModel.User
-	fmt.Println(req)
+	fmt.Println("this is createUser")
 	err := json.Unmarshal([]byte(req.Body), &user)
 
 	if err != nil {
@@ -32,7 +32,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	if dynamoErr != nil {
 		return response(dynamoErr.Error(), http.StatusInternalServerError), nil
 	}
-
+	
 	return response(user.Name, http.StatusOK), nil
 }
 

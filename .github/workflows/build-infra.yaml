@@ -9,29 +9,10 @@ permissions:
   id-token: write # This is required for requesting the JWT
   contents: read  # This is required for actions/checkout
 env:
-  AWS_REGION: ${{ vars.REGION }}
+  AWS_REGION: af-south-1
   TF_WORKING_DIR: ./infra
   IAM_ROLE_ARN: ${{ secrets.OIDC_ROLE_ARN }}
 jobs:
-  setup:
-        runs-on: ubuntu-latest
-        outputs:
-          matrix: ${{ steps.matrix.outputs.value }}
-        steps:
-          - id: matrix
-            run: |
-              echo "value=[\"a\", \"b\", \"c\"]" >> $GITHUB_OUTPUT
-          - run: |
-              echo "${{ steps.matrix.outputs.value }}"
-  build:
-        needs: [ setup ]
-        runs-on: ubuntu-latest
-        strategy:
-          matrix:
-            value: ${{fromJSON(needs.setup.outputs.matrix)}}
-        steps:
-            - run: |
-                    echo "${{ matrix.value }}"
   terraform:
     name: Terraform
     runs-on: ubuntu-latest
@@ -48,6 +29,7 @@ jobs:
         role-to-assume: ${{ env.IAM_ROLE_ARN }}
         aws-region: ${{ env.AWS_REGION }}
 
+          
     - name: Checkout
       uses: actions/checkout@v3
 

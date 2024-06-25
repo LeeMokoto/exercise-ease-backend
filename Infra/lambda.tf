@@ -95,20 +95,20 @@ data "archive_file" "getFunctions" {
   count       = length(var.getFunctions)
   type        = "zip"
   source_file  = "${path.module}/${var.getFunctions[count.index]}/bootstrap"
-  output_path = "${path.module}/getUser/bootstrap.zip"
+  output_path = "${path.module}/${var.getFunction_path[count.index]}"
 }
 
 data "archive_file" "createFunctions" {
-  count       = length(var.getFunctions)
+  count       = length(var.createFunctions)
   type        = "zip"
   source_file  = "${path.module}/${var.createFunctions[count.index]}/bootstrap"
-  output_path = "${path.module}/createUser/bootstrap.zip"
+  output_path = "${path.module}/${var.createFunction_path[count.index]}"
 }
 
 resource "aws_s3_object" "getFunctions" {
   count = length(data.archive_file.getFunctions)
   bucket = aws_s3_bucket.lambda_bucket.id
-  key    = "bootstrap.zip"
+  key    = "${var.getFunctions[count.index]}/bootstrap.zip"
   source = data.archive_file.getFunctions[count.index].output_path
   etag   = filemd5(data.archive_file.getFunctions[count.index].output_path)
 }
@@ -116,10 +116,8 @@ resource "aws_s3_object" "getFunctions" {
 resource "aws_s3_object" "createFunctions" {
   count = length(data.archive_file.createFunctions)
   bucket = aws_s3_bucket.lambda_bucket.id
-  key    = "bootstrap.zip"
+  key    = "${var.createFunctions[count.index]}bootstrap.zip"
   source = data.archive_file.createFunctions[count.index].output_path
   etag   = filemd5(data.archive_file.createFunctions[count.index].output_path)
 }
-
-
 
