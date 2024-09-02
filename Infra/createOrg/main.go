@@ -5,10 +5,10 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-"fmt"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	dynamo "github.com/lambda-go/pkg/handlers"
+	"github.com/lambda-go/pkg/db"
 	orgModel "github.com/lambda-go/pkg/org"
 )
 
@@ -19,19 +19,35 @@ func main() {
 }
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var org orgModel.Org
-	fmt.Println("this is createOrg")
-	err := json.Unmarshal([]byte(req.Body), &org)
-
+	postgresConnector := db.PostgresConnector{}
+	db2, err := postgresConnector.GetConnection()
 	if err != nil {
-		return response("Couldn't unmarshal json into org struct", http.StatusBadRequest), nil
+		return response(err.Error(), http.StatusBadRequest), nil
+	}
+	db2.AutoMigrate(&orgModel.Org{})
+	var org orgModel.Org
+	err = json.Unmarshal([]byte(req.Body), &org)
+	if err != nil {
+		return response(err.Error(), http.StatusBadRequest), nil
+	}
+	result := db2.Create(&org)
+
+	if result.Error != nil {
+		return response(result.Error.Error(), http.StatusInternalServerError), nil
 	}
 
-	dynamoErr := dynamo.SaveOrg(org)
+	// fmt.Println("this is createOrg")
+	// err := json.Unmarshal([]byte(req.Body), &org)
 
-	if dynamoErr != nil {
-		return response(dynamoErr.Error(), http.StatusInternalServerError), nil
-	}
+	// if err != nil {
+	// 	return response("Couldn't unmarshal json into org struct", http.StatusBadRequest), nil
+	// }
+
+	// dynamoErr := dynamo.SaveOrg(org)
+
+	// if dynamoErr != nil {
+	// 	return response(dynamoErr.Error(), http.StatusInternalServerError), nil
+	// }
 
 	return response("successfully created organisation", http.StatusOK), nil
 }

@@ -5,11 +5,11 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"fmt"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	dynamo "github.com/lambda-go/pkg/handlers"
 	clientModel "github.com/lambda-go/pkg/client"
+	"github.com/lambda-go/pkg/db"
 )
 
 func main() {
@@ -19,19 +19,31 @@ func main() {
 }
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	postgresConnector := db.PostgresConnector{}
+	db2, err := postgresConnector.GetConnection()
+	if err != nil {
+		return response(err.Error(), http.StatusBadRequest), nil
+	}
+	db2.AutoMigrate(&clientModel.Client{})
 	var client clientModel.Client
-	fmt.Println("this is createClient")
-	err := json.Unmarshal([]byte(req.Body), &client)
+	err = json.Unmarshal([]byte(req.Body), &client)
 
 	if err != nil {
-		return response("Couldn't unmarshal json into client struct", http.StatusBadRequest), nil
+		return response(err.Error(), http.StatusBadRequest), nil
+	}
+	result := db2.Create(&client)
+
+	//err := json.Unmarshal([]byte(req.Body), &client)
+
+	if result.Error != nil {
+		return response(result.Error.Error(), http.StatusInternalServerError), nil
 	}
 
-	dynamoErr := dynamo.SaveClient(client)
+	//dynamoErr := dynamo.SaveClient(client)
 
-	if dynamoErr != nil {
-		return response(dynamoErr.Error(), http.StatusInternalServerError), nil
-	}
+	// if dynamoErr != nil {
+	// 	return response(dynamoErr.Error(), http.StatusInternalServerError), nil
+	// }
 
 	return response("client added successfully", http.StatusOK), nil
 }

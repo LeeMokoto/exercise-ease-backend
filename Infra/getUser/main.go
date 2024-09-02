@@ -4,13 +4,16 @@ package main
 // import other packages
 import (
 	"encoding/json"
+	"fmt"
+	"main/pkg/db"
+
+	//dynamo "main/pkg/handlers"
+	inputModel "main/pkg/input"
+	userModel "main/pkg/user"
 	"net/http"
-		"fmt"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	dynamo "main/pkg/handlers"
-	userModel "main/pkg/user"
-	inputModel "main/pkg/input"
 )
 
 func main() {
@@ -18,22 +21,39 @@ func main() {
 }
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	postgresConnector := db.PostgresConnector{}
+	db2, err := postgresConnector.GetConnection()
+	if err != nil {
+		return errorResponse(err.Error(), http.StatusBadRequest), nil
+	}
 	var id inputModel.Input
 	var user userModel.User
 	fmt.Println("this is getUser")
-	err := json.Unmarshal([]byte(req.Body), &id)
+	var reqId = req.QueryStringParameters["UserId"]
+	var orgId = req.QueryStringParameters["OrganisationID"]
+	id.OrganisationID = orgId
+	id.UserId = reqId
+	//err := json.Unmarshal([]byte(req.Body), &id)
+	fmt.Println(id)
+	// if err != nil {
+	// 	return errorResponse("Couldn't unmarshal json into user struct", http.StatusBadRequest), nil
+	// }
 
+	//user, dynamoErr := dynamo.GetUser(id)
+	result := db2.Find(&user, "user_id = ? AND organisation_id = ?", id.UserId, id.OrganisationID)
+	if result.Error != nil {
+		return errorResponse(result.Error.Error(), http.StatusInternalServerError), nil
+	}
+
+	//res, dynamoErr := json.Marshal(user)
+	res, err := json.Marshal(user)
+	// if dynamoErr != nil {
+	// 	return errorResponse(dynamoErr.Error(), http.StatusInternalServerError), nil
+	// }
 	if err != nil {
-		return errorResponse("Couldn't unmarshal json into user struct", http.StatusBadRequest), nil
+		return errorResponse(err.Error(), http.StatusInternalServerError), nil
 	}
 
-	user, dynamoErr := dynamo.GetUser(id)
-	
-	res, dynamoErr := json.Marshal(user)
-	if dynamoErr != nil {
-		return errorResponse(dynamoErr.Error(), http.StatusInternalServerError), nil
-	}
-	
 	return response(res, http.StatusOK), nil
 }
 

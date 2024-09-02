@@ -4,11 +4,12 @@ package main
 // import other packages
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
-"fmt"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	dynamo "github.com/lambda-go/pkg/handlers"
+	"github.com/lambda-go/pkg/db"
 	userModel "github.com/lambda-go/pkg/user"
 )
 
@@ -19,21 +20,29 @@ func main() {
 }
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var user userModel.User
-	fmt.Println("this is createUser")
-	err := json.Unmarshal([]byte(req.Body), &user)
-
+	postgresConnector := db.PostgresConnector{}
+	db2, err := postgresConnector.GetConnection()
 	if err != nil {
-		return response("Couldn't unmarshal json into user struct", http.StatusBadRequest), nil
+		return response(err.Error(), http.StatusBadRequest), nil
+	}
+	db2.AutoMigrate(&userModel.User{})
+	var user userModel.User
+	err = json.Unmarshal([]byte(req.Body), &user)
+	fmt.Println(user)
+	if err != nil {
+		return response(err.Error(), http.StatusBadRequest), nil
+	}
+	result := db2.Create(&user)
+	//dynamoErr := dynamo.SaveUser(user)
+
+	// if dynamoErr != nil {
+	// 	return response(dynamoErr.Error(), http.StatusInternalServerError), nil
+	// }
+	if result.Error != nil {
+		return response(result.Error.Error(), http.StatusInternalServerError), nil
 	}
 
-	dynamoErr := dynamo.SaveUser(user)
-
-	if dynamoErr != nil {
-		return response(dynamoErr.Error(), http.StatusInternalServerError), nil
-	}
-	
-	return response(user.Name, http.StatusOK), nil
+	return response("user created successfully", http.StatusOK), nil
 }
 
 func response(body string, statusCode int) events.APIGatewayProxyResponse {

@@ -32,6 +32,38 @@ resource "aws_lambda_function" "createFunctions"{
   role = aws_iam_role.lambda_exec.arn
 }
 
+resource "aws_lambda_function" "updateFunctions"{
+  count = length(var.updateFunctions)
+  function_name = var.updateFunctions[count.index]
+  timeout = 60
+  # The bucket name as created earlier with "aws s3api create-bucket"
+  s3_bucket = aws_s3_bucket.lambda_bucket.id
+  s3_key    = aws_s3_object.updateFunctions[count.index].key
+  memory_size = 512
+  handler = "bootstrap"
+  runtime = "provided.al2023"
+  
+  source_code_hash = data.archive_file.updateFunctions[count.index].output_base64sha256
+
+  role = aws_iam_role.lambda_exec.arn
+}
+
+resource "aws_lambda_function" "deleteFunctions"{
+  count = length(var.deleteFunctions)
+  function_name = var.deleteFunctions[count.index]
+  timeout = 60
+  # The bucket name as created earlier with "aws s3api create-bucket"
+  s3_bucket = aws_s3_bucket.lambda_bucket.id
+  s3_key    = aws_s3_object.deleteFunctions[count.index].key
+  memory_size = 512
+  handler = "bootstrap"
+  runtime = "provided.al2023"
+  
+  source_code_hash = data.archive_file.deleteFunctions[count.index].output_base64sha256
+
+  role = aws_iam_role.lambda_exec.arn
+}
+
 
 # IAM role which dictates what other AWS services the Lambda function
 # may access.
@@ -64,7 +96,7 @@ resource "aws_iam_role_policy_attachment" "lambda_policy" {
 data "aws_iam_policy_document" "policy" {
   statement {
     effect = "Allow"
-    actions = ["dynamodb:*", "s3:*", "secretsmanager:*"]
+    actions = ["dynamodb:*", "s3:*", "secretsmanager:*", "cognito-idp:*"]
     resources = ["*"]
   }
 }
@@ -90,6 +122,16 @@ resource "aws_cloudwatch_log_group" "createFunctions_lambda" {
   name = "/aws/lambda/${aws_lambda_function.createFunctions[count.index].function_name}"
 }
 
+resource "aws_cloudwatch_log_group" "updateFunctions_lambda" {
+  count = length(var.updateFunctions)
+  name = "/aws/lambda/${aws_lambda_function.updateFunctions[count.index].function_name}"
+}
+
+resource "aws_cloudwatch_log_group" "deleteFunctions_lambda" {
+  count = length(var.deleteFunctions)
+  name = "/aws/lambda/${aws_lambda_function.deleteFunctions[count.index].function_name}"
+}
+
 //data for the lambda zip
 data "archive_file" "getFunctions" {
   count       = length(var.getFunctions)
@@ -103,6 +145,20 @@ data "archive_file" "createFunctions" {
   type        = "zip"
   source_file  = "${path.module}/${var.createFunctions[count.index]}/bootstrap"
   output_path = "${path.module}/${var.createFunction_path[count.index]}"
+}
+
+data "archive_file" "updateFunctions" {
+  count       = length(var.updateFunctions)
+  type        = "zip"
+  source_file  = "${path.module}/${var.updateFunctions[count.index]}/bootstrap"
+  output_path = "${path.module}/${var.updateFunction_path[count.index]}"
+}
+
+data "archive_file" "deleteFunctions" {
+  count       = length(var.deleteFunctions)
+  type        = "zip"
+  source_file  = "${path.module}/${var.deleteFunctions[count.index]}/bootstrap"
+  output_path = "${path.module}/${var.deleteFunction_path[count.index]}"
 }
 
 resource "aws_s3_object" "getFunctions" {
@@ -119,5 +175,21 @@ resource "aws_s3_object" "createFunctions" {
   key    = "${var.createFunctions[count.index]}bootstrap.zip"
   source = data.archive_file.createFunctions[count.index].output_path
   etag   = filemd5(data.archive_file.createFunctions[count.index].output_path)
+}
+
+resource "aws_s3_object" "updateFunctions" {
+  count = length(data.archive_file.updateFunctions)
+  bucket = aws_s3_bucket.lambda_bucket.id
+  key    = "${var.updateFunctions[count.index]}bootstrap.zip"
+  source = data.archive_file.updateFunctions[count.index].output_path
+  etag   = filemd5(data.archive_file.updateFunctions[count.index].output_path)
+}
+
+resource "aws_s3_object" "deleteFunctions" {
+  count = length(data.archive_file.deleteFunctions)
+  bucket = aws_s3_bucket.lambda_bucket.id
+  key    = "${var.deleteFunctions[count.index]}bootstrap.zip"
+  source = data.archive_file.deleteFunctions[count.index].output_path
+  etag   = filemd5(data.archive_file.deleteFunctions[count.index].output_path)
 }
 
