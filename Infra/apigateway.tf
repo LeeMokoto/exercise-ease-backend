@@ -107,7 +107,7 @@ resource "aws_apigatewayv2_route" "updateFunctions_handler" {
 resource "aws_apigatewayv2_route" "deleteFunctions_handler" {
   count     = length(var.deleteFunctions)
   api_id    = aws_apigatewayv2_api.main.id
-  route_key = "POST /${var.deleteFunctions[count.index]}"
+  route_key = "DELETE /${var.deleteFunctions[count.index]}"
 
   target = "integrations/${aws_apigatewayv2_integration.deleteFunctions_handler[count.index].id}"
 }

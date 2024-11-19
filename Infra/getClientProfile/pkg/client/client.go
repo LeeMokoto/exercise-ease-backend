@@ -1,10 +1,16 @@
 // This code is part of player package
 package clientModel
 
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
+
 // import other packages
 
 type Client struct {
-	ClientId       string `json:"ClientId"`
+	ClientId       string `gorm:"primarykey,index"`
 	Name           string `json:"Name"`
 	Surname        string `json:"Surname"`
 	Email          string `json:"Email"`
@@ -17,4 +23,7 @@ type Client struct {
 	ProgramID      string `json:"ProgramID"`
 	ResourceBucket string `json:"ResourceBucket"`
 	OrganisationID string `json:"OrganisationID"`
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      gorm.DeletedAt
 }

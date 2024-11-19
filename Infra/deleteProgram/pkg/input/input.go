@@ -5,5 +5,6 @@ package inputModel
 
 type Input struct {
 	ProgramId string `json:"ProgramId"`
+	Id        string `json:"Id"`
 	//ClientId string `json:"ClientId"`
 }

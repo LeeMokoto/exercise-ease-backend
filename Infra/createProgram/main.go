@@ -6,6 +6,7 @@ import (
 	"createProgram/main/pkg/db"
 	exerciseModel "createProgram/main/pkg/exercise"
 	programModel "createProgram/main/pkg/program"
+	supersetsModel "createProgram/main/pkg/supersets"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -26,7 +27,8 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	if err != nil {
 		return response(err.Error(), http.StatusBadRequest), nil
 	}
-	db2.AutoMigrate(&programModel.Program{}, &exerciseModel.Exercise{})
+	db2.AutoMigrate(&programModel.Program{}, &exerciseModel.Exercise{}, &supersetsModel.Superset{})
+	//db2.AutoMigrate(&programModel.Program{})
 	var program programModel.Program
 	err = json.Unmarshal([]byte(req.Body), &program)
 	fmt.Println(program)

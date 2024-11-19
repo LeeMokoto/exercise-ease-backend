@@ -28,7 +28,12 @@ func SaveClient(client cognitoInput.CognitoInput) (*cognitoidentityprovider.Admi
 		UserAttributes: []types.AttributeType{{Name: aws.String("email"), Value: aws.String(client.UserEmail)}, {Name: aws.String("email_verified"), Value: aws.String("True")}, {Name: aws.String("phone_number_verified"), Value: aws.String("True")}, {Name: aws.String("profile"), Value: aws.String(client.Role)},
 			{Name: aws.String("phone_number"), Value: aws.String(client.PhoneNumber)}},
 	}
+	// input1 := &cognitoidentityprovider.AdminDeleteUserInput{
+	// 	UserPoolId:             aws.String(client.UserPoolId),
+	// 	Username:               aws.String(client.UserName),
+	// }
 	fmt.Println("creating user")
+	//cognitoSession.AdminDeleteUser(context.TODO(), input1)
 	res, err := cognitoSession.AdminCreateUser(context.TODO(), input)
 
 	if err != nil {

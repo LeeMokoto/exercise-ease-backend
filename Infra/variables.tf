@@ -3,25 +3,25 @@
 variable "getFunction_names" {
   description = "Names of the getFunctions"
   type        = list(string)
-  default     = ["getUser.zip","getClients.zip","getOrg.zip","getPrograms.zip","getClientProfile.zip","getUsers.zip"]
+  default     = ["getUser.zip","getClients.zip","getOrg.zip","getPrograms.zip","getClientProfile.zip","getUsers.zip","getProgram.zip","getClientPrograms.zip"]
 }
 
 variable "getFunctions" {
   description = "Create get functions for database tables"
   type        = list(string)
-  default     = ["getUser","getClients","getOrg","getPrograms","getClientProfile","getUsers"]
+  default     = ["getUser","getClients","getOrg","getPrograms","getClientProfile","getUsers","getProgram","getClientPrograms"]
 }
 
 variable "getFunctions_handlers" {
   description = "API handlers for getFunctions set"
   type        = list(string)
-  default     = ["getUser","getClients","getOrg","getPrograms","getClientProfile","getUsers"]
+  default     = ["getUser","getClients","getOrg","getPrograms","getClientProfile","getUsers","getProgram","getClientPrograms"]
 }
 
 variable "getFunction_path"{
   description = "path of code"
   type = list(string)
-  default = ["getUser/bootstrap.zip","getClients/bootstrap.zip","getOrg/bootstrap.zip","getPrograms/bootstrap.zip","getClientProfile/bootstrap.zip","getUsers/bootstrap.zip"]
+  default = ["getUser/bootstrap.zip","getClients/bootstrap.zip","getOrg/bootstrap.zip","getPrograms/bootstrap.zip","getClientProfile/bootstrap.zip","getUsers/bootstrap.zip","getProgram/bootstrap.zip","getClientPrograms/bootstrap.zip"]
 }
 
 ///update functions

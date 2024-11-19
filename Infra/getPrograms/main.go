@@ -40,7 +40,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	// }
 
 	//client, dynamoErr := dynamo.GetPrograms(id)
-	result := db2.Model(&programModel.Program{}).Preload("Exercises").Find(&programs, "program_id = ?", id.ProgramId)
+	result := db2.Model(&programModel.Program{}).Preload("Exercises").Preload("Exercises.Superset").Find(&programs, "program_id = ?", id.ProgramId)
 
 	if result.Error != nil {
 		return errorResponse(result.Error.Error(), http.StatusInternalServerError), nil

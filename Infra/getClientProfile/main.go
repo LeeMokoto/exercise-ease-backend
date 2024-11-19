@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	clientModel "getClientProfile/main/pkg/client"
-	dynamo "getClientProfile/main/pkg/handlers"
+	"getClientProfile/main/pkg/db"
+
+	//dynamo "getClientProfile/main/pkg/handlers"
 	inputModel "getClientProfile/main/pkg/input"
 	"net/http"
 
@@ -19,6 +21,11 @@ func main() {
 }
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	postgresConnector := db.PostgresConnector{}
+	db2, err := postgresConnector.GetConnection()
+	if err != nil {
+		return errorResponse(err.Error(), http.StatusBadRequest), nil
+	}
 	var id inputModel.Input
 	var client []clientModel.Client
 	fmt.Println("this is getUser")
@@ -30,13 +37,23 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	// 	return errorResponse("Couldn't unmarshal json into user struct", http.StatusBadRequest), nil
 	// }
 
-	client, dynamoErr := dynamo.GetClient(id)
+	//client, dynamoErr := dynamo.GetClient(id)
 
-	res, dynamoErr := json.Marshal(client)
-	if dynamoErr != nil {
-		return errorResponse(dynamoErr.Error(), http.StatusInternalServerError), nil
+	// res, dynamoErr := json.Marshal(client)
+	// if dynamoErr != nil {
+	// 	return errorResponse(dynamoErr.Error(), http.StatusInternalServerError), nil
+	// }
+
+	// return response(res, http.StatusOK), nil
+
+	result := db2.Find(&client, "client_id = ?", id.ClientId)
+	if result.Error != nil {
+		return errorResponse(result.Error.Error(), http.StatusInternalServerError), nil
 	}
-
+	res, err := json.Marshal(client)
+	if err != nil {
+		return errorResponse(err.Error(), http.StatusInternalServerError), nil
+	}
 	return response(res, http.StatusOK), nil
 }
 

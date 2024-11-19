@@ -17,5 +17,5 @@ type Program struct {
 	Frequency   string                   `json:"Frequency"`
 	Duration    string                   `json:"Duration"`
 	IsCompleted string                   `json:"IsCompleted"`
-	Exercises   []exerciseModel.Exercise `gorm:"foreignKey:ID"`
+	Exercises   []exerciseModel.Exercise `gorm:"foreignKey:ID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
 }

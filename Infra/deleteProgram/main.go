@@ -23,13 +23,16 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return errorResponse(err.Error(), http.StatusBadRequest), nil
 	}
 
-	var id inputModel.Input
+	var input inputModel.Input
 	var program programModel.Program
 	//var exercise exerciseModel.Exercise
 	var programId = req.QueryStringParameters["ProgramId"]
-	id.ProgramId = programId
-
-	result := db2.Unscoped().Where("program_id = ?", id.ProgramId).Delete(&program)
+	var id = req.QueryStringParameters["Id"]
+	input.ProgramId = programId
+	input.Id = id
+	print(programId)
+	print(id)
+	result := db2.Unscoped().Where("program_id = ? AND id = ?", input.ProgramId, input.Id).Delete(&program)
 
 	if result.Error != nil {
 		return errorResponse(result.Error.Error(), http.StatusInternalServerError), nil
